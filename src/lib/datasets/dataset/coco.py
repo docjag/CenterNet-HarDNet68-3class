@@ -15,17 +15,24 @@ from pycocotools.cocoeval import COCOeval
 
 class COCO(data.Dataset):
   
-  num_classes = 80
+  # num_classes = 80
+
+  num_classes = 5
   default_resolution = [512, 512]
+  
   mean = np.array([0.40789654, 0.44719302, 0.47026115],
                    dtype=np.float32).reshape(1, 1, 3)
+  
   std  = np.array([0.28863828, 0.27408164, 0.27809835],
                    dtype=np.float32).reshape(1, 1, 3)
 
   def __init__(self, opt, split):
+
     super(COCO, self).__init__()
+
     self.data_dir = os.path.join(opt.data_dir, 'coco')
     self.img_dir = os.path.join(self.data_dir, '{}2017'.format(split))
+    
     if split == 'test':
       self.annot_path = os.path.join(
           self.data_dir, 'annotations', 
@@ -68,19 +75,20 @@ class COCO(data.Dataset):
     #   82, 84, 85, 86, 87, 88, 89, 90]
 
     
-    self.animals = ['cat', 'dog']
-    self.vehicles = ['car', 'truck']
-    self.sub_cat_dict = {'animals' : self.animals, 'vehicles': self.vehicles}
-    
-    self.class_name = ['person', 'car', 'truck', 'cat', 'dog']
+    # self.animals = ['cat', 'dog']
+    # self.vehicles = ['car', 'truck']
+    # self.sub_cat_dict = {'animals' : self.animals, 'vehicles': self.vehicles}
+    # self.class_name = ['person', 'vehicles', 'animals']
 
     self.class_name = ['person', 'car', 'truck', 'cat', 'dog']
     self._valid_ids = [1, 2, 3, 4, 5]
     
     self.cat_ids = {v: i for i, v in enumerate(self._valid_ids)}
+
     self.voc_color = [(v // 32 * 64 + 64, (v // 8) % 4 * 64, v % 8 * 32) \
                       for v in range(1, self.num_classes + 1)]
     self._data_rng = np.random.RandomState(123)
+    
     self._eig_val = np.array([0.2141788, 0.01817699, 0.00341571],
                              dtype=np.float32)
     self._eig_vec = np.array([
@@ -88,6 +96,7 @@ class COCO(data.Dataset):
         [-0.5832747, 0.00994535, -0.81221408],
         [-0.56089297, 0.71832671, 0.41158938]
     ], dtype=np.float32)
+    
     # self.mean = np.array([0.485, 0.456, 0.406], np.float32).reshape(1, 1, 3)
     # self.std = np.array([0.229, 0.224, 0.225], np.float32).reshape(1, 1, 3)
 

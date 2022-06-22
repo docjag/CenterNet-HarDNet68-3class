@@ -7,7 +7,6 @@ After install Anaconda:
 
 1. Install pytorch1.5.0:
 
-     
 2. Install [COCOAPI](https://github.com/cocodataset/cocoapi):
 
     ~~~
@@ -21,9 +20,9 @@ After install Anaconda:
 3. Install the requirements and clone this repo
 
     ~~~
-    pip install -r requirements.txt
     git clone --recursive https://github.com/PingoLH/CenterNet-HarDNet.git
-    ~~~   
+    pip install -r requirements.txt
+    ~~~
     
 4. [Optional, only required if you are using extremenet or multi-scale testing] Compile NMS if your want to use multi-scale testing or test ExtremeNet.
 
