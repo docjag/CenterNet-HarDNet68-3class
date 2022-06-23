@@ -72,21 +72,26 @@ class CtdetTrainer(BaseTrainer):
   def __init__(self, opt, model, optimizer=None):
     super(CtdetTrainer, self).__init__(opt, model, optimizer=optimizer)
   
+  # Method Overriding
   def _get_losses(self, opt):
     loss_states = ['loss', 'hm_loss', 'wh_loss', 'off_loss']
     loss = CtdetLoss(opt)
     return loss_states, loss
 
+  # Method Overriding
   def debug(self, batch, output, iter_id):
     opt = self.opt
     reg = output['reg'] if opt.reg_offset else None
+    
     dets = ctdet_decode(
       output['hm'], output['wh'], reg=reg,
       cat_spec_wh=opt.cat_spec_wh, K=opt.K)
+    
     dets = dets.detach().cpu().numpy().reshape(1, -1, dets.shape[2])
     dets[:, :, :4] *= opt.down_ratio
     dets_gt = batch['meta']['gt_det'].numpy().reshape(1, -1, dets.shape[2])
     dets_gt[:, :, :4] *= opt.down_ratio
+    
     for i in range(1):
       debugger = Debugger(
         dataset=opt.dataset, ipynb=(opt.debug==3), theme=opt.debugger_theme)
@@ -98,12 +103,14 @@ class CtdetTrainer(BaseTrainer):
       debugger.add_blend_img(img, pred, 'pred_hm')
       debugger.add_blend_img(img, gt, 'gt_hm')
       debugger.add_img(img, img_id='out_pred')
+      
       for k in range(len(dets[i])):
         if dets[i, k, 4] > opt.center_thresh:
           debugger.add_coco_bbox(dets[i, k, :4], dets[i, k, -1],
                                  dets[i, k, 4], img_id='out_pred')
 
       debugger.add_img(img, img_id='out_gt')
+      
       for k in range(len(dets_gt[i])):
         if dets_gt[i, k, 4] > opt.center_thresh:
           debugger.add_coco_bbox(dets_gt[i, k, :4], dets_gt[i, k, -1],
@@ -114,6 +121,7 @@ class CtdetTrainer(BaseTrainer):
       else:
         debugger.show_all_imgs(pause=True)
 
+  # Method Overriding
   def save_result(self, output, batch, results):
     reg = output['reg'] if self.opt.reg_offset else None
     dets = ctdet_decode(

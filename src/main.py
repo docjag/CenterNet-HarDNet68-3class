@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
@@ -14,7 +14,9 @@ from logger import Logger
 
 from models.model import create_model, load_model, save_model
 from models.data_parallel import DataParallel
+
 from datasets.dataset_factory import get_dataset
+
 from trains.train_factory import train_factory
 
 def derivative_mod(m, gain):
@@ -26,20 +28,29 @@ def main(opt):
 
     # random seed
     torch.manual_seed(opt.seed)
+
+    ##########################################################################################
+    ################################## CHECK CUDA BENCHMARK ##################################
+    ##########################################################################################
     
-    # CHECK CUDA BENCHMARK
     torch.backends.cudnn.benchmark = not opt.not_cuda_benchmark and not opt.test
+
+    os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
+    opt.device = torch.device('cuda' if opt.gpus[0] >= 0 else 'cpu')
     
     ##########################################################################################
     ###################################### GET DATASETS ######################################
     ##########################################################################################
+    
+    # Create Dataset object which is derived from data_factory & _sample_task classes
     Dataset = get_dataset(opt.dataset, opt.task)
+    
+
+    # Update opt by setting the heads using Dataset object
     opt = opts().update_dataset_info_and_set_heads(opt, Dataset)
 
+    # Create Logger instance
     logger = Logger(opt)
-
-    os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
-    opt.device = torch.device('cuda' if opt.gpus[0] >= 0 else 'cpu')
     
     
     ##########################################################################################
@@ -53,6 +64,7 @@ def main(opt):
     
     start_epoch = 0
     
+    # Load pretrained model
     if opt.load_model != '':
       model, optimizer, start_epoch = load_model(
         model, opt.load_model, optimizer, opt.resume, opt.lr, opt.lr_step)

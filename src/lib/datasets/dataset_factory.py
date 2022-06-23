@@ -29,7 +29,15 @@ _sample_factory = {
 
 
 def get_dataset(dataset, task):
+  """Return a derived class object inherited 
+  from dataset_fctory and _sample_factory"""
+
+  # Inheritence of dataset_factory and _sample_factory classess
+  # This class would have all the functions of inherited classes
+  # This class doesn't have its own attributes and functions
   class Dataset(dataset_factory[dataset], _sample_factory[task]):
     pass
+  
+
   return Dataset
   

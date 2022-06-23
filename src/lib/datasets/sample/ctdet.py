@@ -30,24 +30,31 @@ from .image import blend_truth_mosaic, get_border_coord, mask2box
 class CTDetDataset(data.Dataset):
   
   def _coco_box_to_bbox(self, box):
+
     bbox = np.array([box[0], box[1], box[0] + box[2], box[1] + box[3]],
                     dtype=np.float32)
     return bbox
 
   def _get_border(self, border, size):
+
     i = 1
+
     while size - border // i <= border // i:
         i *= 2
+    
     return border // i
   
   
   def img_transform(self, img, anns, flip_en=True, scale_lv=2, out_shift=None, crop=None):
+    
     height, width = img.shape[0], img.shape[1]
     c = np.array([img.shape[1] / 2., img.shape[0] / 2.], dtype=np.float32)
+    
     if self.opt.keep_res:
       input_h = (height | self.opt.pad) + 1
       input_w = (width | self.opt.pad) + 1
       s = np.array([input_w, input_h], dtype=np.float32)
+    
     else:
       s = [img.shape[1], img.shape[0]]
       input_h, input_w = self.opt.input_h, self.opt.input_w
@@ -68,8 +75,10 @@ class CTDetDataset(data.Dataset):
       
       distortion = 0.6
       sd = np.random.random()*distortion*2 - distortion + 1
+      
       if img.shape[0] > img.shape[1]:
         s = [s, s*(img.shape[0] / img.shape[1])*sd]
+      
       else:
         s = [s*(img.shape[1] / img.shape[0])*sd, s]
 
@@ -79,6 +88,7 @@ class CTDetDataset(data.Dataset):
       if flip_en and np.random.random() < self.opt.flip:
         flipped = True
         img = img[:, ::-1, :]
+      
       if rot_en:
         rot = np.random.random()*self.opt.rotate*2 - self.opt.rotate
 
@@ -98,6 +108,7 @@ class CTDetDataset(data.Dataset):
                          (input_w, input_h),
                          flags=cv2.INTER_LINEAR)
     inp = (inp.astype(np.float32) / 255.)
+    
     if self.split == 'train' and not self.opt.no_color_aug:
       color_aug(self._data_rng, inp, self._eig_val, self._eig_vec)
 
@@ -113,10 +124,13 @@ class CTDetDataset(data.Dataset):
       ann = anns[k]
       bbox = self._coco_box_to_bbox(ann['bbox'])
       cls_id = int(self.cat_ids[ann['category_id']])
+      
       if flipped:
           bbox[[0, 2]] = width - bbox[[2, 0]]
+      
       bbox[:2] = affine_transform(bbox[:2], trans_input)
       bbox[2:] = affine_transform(bbox[2:], trans_input)
+      
       segm  = ann['segmentation']
 
       # Create bbox from the visible part of objects through segmenation mask
@@ -126,9 +140,11 @@ class CTDetDataset(data.Dataset):
 
       if rot_en:
         bbox = bbox2.astype(np.float32)
+      
       ann_list.append([bbox, cls_id, bbox2])
       
       #end of objs loop
+    
     meta = (c, s)
     inp = (inp - self.mean) / self.std
     inp = inp.transpose(2, 0, 1)
@@ -137,6 +153,7 @@ class CTDetDataset(data.Dataset):
 
   
   def get_img_ann(self, index=None, scale_lv=2, out_shift=None, crop=None, flip_en=True):
+    
     index = np.random.randint(len(self.images)) if index is None else index
     img_id = self.images[index]
     file_name = self.coco.loadImgs(ids=[img_id])[0]['file_name']
